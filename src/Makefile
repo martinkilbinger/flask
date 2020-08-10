@@ -13,85 +13,36 @@ BIN  = ../bin
 OBJ  = ../obj
 SRC  = ../src
 
-# Healpix location (for version 3.60):
-HEALDIR  = /home/skems/prog/Healpix_3.60_2019Dec18/Healpix_3.60
-HEALDATA = $(HEALDIR)/data
-CXXHEAL  = -I$(HEALDIR)/include/healpix_cxx
-LDHEAL   = -L$(HEALDIR)/lib
+# Euclid library path in LODEEN/Eden
+PREFIX = $(EUCLID_CUSTOM_PREFIX)
 
 # Healpix location (for versions <=3.50):
 #HEALDIR  =  /home/skems/prog/Healpix_3.50_2018Dec10/Healpix_3.50
-#HEALDATA = $(HEALDIR)/data
-#CXXHEAL  = -I$(HEALDIR)/src/cxx/generic_gcc/include
-#LDHEAL   = -L$(HEALDIR)/src/cxx/generic_gcc/lib
+HEALDATA = $(PREFIX)/lib64/python3.6/site-packages/healpy/data
+CXXHEAL  = -I$(PREFIX)/include/healpix_cxx -I.
+LDHEAL   = -L$(PREFIX)/lib64
 
 
 # Location of other headers and libraries (if not in a default location):
 # Uncomment and change path if required:
-#CXXFITS  = -I/path/to/cfitsio/headers
-#LDFITS   = -L/path/to/cfitsio/libraries
-#CXXGSL   = -I/path/to/gsl/headers/folder
-#LDGSL    = -L/path/to/gsl/libraries/folder
+CXXFITS  = -I$(PREFIX)/include/cfitsio
+LDFITS   = -L$(PREFIX)/lib64
+CXXGSL   = -I$(PREFIX)/include
+LDGSL    = -L$(PREFIX)/lib64
 
-
-###########################################################
-### Library and header locations for specific computers ###
-###########################################################
-
-# Options for gina:
-ifeq ($(HOSTNAME), gina.iag.usp.br)
-HEALDIR  =  /sto/home/hsxavier/prog/Healpix_3.31
-HEALDATA = $(HEALDIR)/data
-CXXHEAL  = -I$(HEALDIR)/src/cxx/generic_gcc/include
-LDHEAL   = -L$(HEALDIR)/src/cxx/generic_gcc/lib
-CXXFITS  = -I/sto/home/hsxavier/prog/cfitsio
-LDFITS   = -L/sto/home/hsxavier/prog/cfitsio
-CXXGSL   = -I/sto/home/hsxavier/prog/gsl/include
-LDGSL    = -L/sto/home/hsxavier/prog/gsl/lib
-endif
-
-# Options for GridUNESP computer:
-ifeq ($(HOSTNAME), access.grid.unesp.br)
-HEALDIR  = /home/rosenfel/FLASK/Healpix_3.31
-HEALDATA = $(HEALDIR)/data
-CXXHEAL  = -I$(HEALDIR)/src/cxx/generic_gcc/include
-LDHEAL   = -L$(HEALDIR)/src/cxx/generic_gcc/lib
-CXXFITS  = -I/home/rosenfel/FLASK/cfitsio/include
-LDFITS   = -L/home/rosenfel/FLASK/cfitsio/lib
-endif
-
-
-# Options for Splinter computer:
-ifeq ($(HOSTNAME), splinter-login.local)
-#HEALDIR  = /home/hsxavier/Healpix_3.11
-HEALDIR  = /share/splinter/cosmos/modules/may_2017/install_dir/Healpix_3.31
-HEALDATA = $(HEALDIR)/data
-CXXHEAL  = -I$(HEALDIR)/src/cxx/generic_gcc/include
-LDHEAL   = -L$(HEALDIR)/src/cxx/generic_gcc/lib
-CXXFITS  = -I/usr/include/cfitsio
-endif
-
-# Options for Alphacrucis computer:
-ifeq ($(HOSTNAME), alphacrucis)
-HEALDIR  = /sto/home/hsxavier/Healpix_3.20
-HEALDATA = $(HEALDIR)/data
-CXXHEAL  = -I$(HEALDIR)/src/cxx/generic_gcc/include
-LDHEAL   = -L$(HEALDIR)/src/cxx/generic_gcc/lib
-CXXFITS  = -I/sto/home/hsxavier/cfitsio
-LDFITS   = -L/sto/home/hsxavier/cfitsio
-endif
-
-
-##################################
-### Back to defining variables ###
-##################################
 
 # Get Healpix version and set compilation requirements accordingly:
-HEALVERSION := $(shell grep -o '[0-9]*\.[0-9]*' $(HEALDIR)/Version)
-USEXCOMPLEX := $(shell echo "$(HEALVERSION) < 3.30" | bc)# Set to 1 if Healpix version < 3.30, 0 otherwise.
-USEFFTPACK  := $(shell echo "$(HEALVERSION) < 3.50" | bc)# Set to 1 if Healpix version < 3.50, 0 otherwise.
-USEMAP2TGA  := $(shell echo "$(HEALVERSION) < 3.60" | bc)# Set to 1 if Healpix version < 3.60, 0 otherwise.
-USEOLDLIBS  := $(shell echo "$(HEALVERSION) < 3.60" | bc)# Set to 1 if Healpix version < 3.60, 0 otherwise.
+#HEALVERSION := $(shell grep -o '[0-9]*\.[0-9]*' $(HEALDIR)/Version)
+HEALVERSION = 3.31
+USEXCOMPLEX = 0
+USEFFTPACK = 0
+USEMAP2TGA = 0
+USEOLDLIBS = 0
+
+#USEXCOMPLEX := $(shell echo "$(HEALVERSION) < 3.30" | bc)# Set to 1 if Healpix version < 3.30, 0 otherwise.
+#USEFFTPACK  := $(shell echo "$(HEALVERSION) < 3.50" | bc)# Set to 1 if Healpix version < 3.50, 0 otherwise.
+#USEMAP2TGA  := $(shell echo "$(HEALVERSION) < 3.60" | bc)# Set to 1 if Healpix version < 3.60, 0 otherwise.
+#USEOLDLIBS  := $(shell echo "$(HEALVERSION) < 3.60" | bc)# Set to 1 if Healpix version < 3.60, 0 otherwise.
 
 # Set FFTFLAG according to Healpix version:
 ifeq ($(USEFFTPACK), 1) # v < 3.50
@@ -114,14 +65,14 @@ CXXOMP = -fopenmp
 # Libraries to link:
 
 # Static Healpix library (force its use to avoid the need to set LD_LIBRARY_PATH to $(HEALDIR)/lib):
-LIBHEALPIX = -Wl,-Bstatic -lhealpix_cxx -Wl,-Bdynamic
+#LIBHEALPIX = -Wl,-Bstatic -lhealpix_cxx -Wl,-Bdynamic
 # Shared Healpix library (use it if available; uncomment if desired):
-#LIBHEALPIX = -lhealpix_cxx
+LIBHEALPIX = -lhealpix_cxx
 
 # Static libsharp (force its use to avoid the need to set LD_LIBRARY_PATH to $(HEALDIR)/lib):
-LIBSHARP = -Wl,-Bstatic -lsharp -Wl,-Bdynamic
+#LIBSHARP = -Wl,-Bstatic -lsharp -Wl,-Bdynamic
 # Shared libsharp (use it if available; uncomment if desired):
-#LIBSHARP = -lsharp
+LIBSHARP = -lsharp_healpix_f
 
 ifeq ($(USEOLDLIBS), 1)
 LIBS = -lgsl -lgslcblas -lhealpix_cxx -lcxxsupport -lcfitsio -lsharp $(FFTFLAG) -lc_utils -lgomp
